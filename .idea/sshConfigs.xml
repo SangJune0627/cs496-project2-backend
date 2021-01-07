@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SshConfigs">
-    <configs>
-      <sshConfig host="192.249.18.171" id="21a1a548-f2ab-4281-86a3-ba13a1ddf6e8" keyPath="C:\Users\q\.ssh\CS496key.pem" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" />
-    </configs>
-  </component>
-</project>
