@@ -1,6 +1,5 @@
 var http = require('http'); 
 var mongoose = require('mongoose');
-var querystring = require('querystring');
 
 mongoose.connect('mongodb://localhost:27017/testDB',{ useNewUrlParser: true , useUnifiedTopology: true });
 var db = mongoose.connection;
@@ -29,41 +28,46 @@ var server = http.createServer(function(request,response){
 
         request.on('data', function (data) {
             postdata = postdata + data;
-            console.log("Data Connected");
         });
 
         request.on('end', function () {
 
             var newTestString = new Teststring({string:postdata});
-            var getStringInDb = '';
             var id='';
+            var getStringInDb = '';
+
             newTestString.save(function(error, data){
+                console.log('--- Save data ---');
                 if(error){
                     console.log(error);
                 }else{
-                    console.log('Saved!');
-                    id=data._id;
+                    console.log(data);
+
+                    id=data._id.toString();
+
+                    Teststring.findOne({_id:id},function(error, string){
+                        console.log('--- Read data ---');
+                        if(error){
+                            console.log(error);
+                        }else{
+                            console.log(string);
+
+                            getStringInDb = string.string;
+
+                            console.log('Get Data: ' + getStringInDb);
+
+                            response.writeHead(201, {'Content-Type':'text/html'});
+                            response.end('Data is: ' + getStringInDb + '\nIt works!');
+                        }
+                    })
                 }
             });
-
-            Teststring.findOne({_id:id},function(error, string){
-                console.log('--- Read all ---');
-                if(error){
-                    console.log(error);
-                }else{
-                    console.log(string);
-                    getStringInDb = string;
-                }
-            })
-
-            response.writeHead(201, {'Content-Type':'text/html'});
-            response.end('Data is: ' + getStringInDb+ "\nIt works!");
         });
     }
     else if(request.method=='GET'){
         console.log("GET Connected");
         response.writeHead(200, {'Content-Type':'text/html'});
-        response.end("Hello world!!!!~~~");
+        response.end('Hello World!');
     }
     else{
         console.log("????");
