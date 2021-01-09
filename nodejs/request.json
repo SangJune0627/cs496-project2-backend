@@ -1,0 +1,76 @@
+{
+    "children": [
+        {
+            "children": [
+                {
+                    "children": [],
+                    "dirName": "",
+                    "imgAddr": 0,
+                    "type": 0
+                },
+                {
+                    "children": [],
+                    "dirName": "",
+                    "imgAddr": 1,
+                    "type": 0
+                },
+                {
+                    "children": [],
+                    "dirName": "",
+                    "imgAddr": 2,
+                    "type": 0
+                }
+            ],
+            "dirName": "위",
+            "imgAddr": 0,
+            "type": 1
+        },
+        {
+            "children": [
+                {
+                    "children": [],
+                    "dirName": "",
+                    "imgAddr": 3,
+                    "type": 0
+                },
+                {
+                    "children": [],
+                    "dirName": "",
+                    "imgAddr": 4,
+                    "type": 0
+                },
+                {
+                    "children": [],
+                    "dirName": "",
+                    "imgAddr": 5,
+                    "type": 0
+                }
+            ],
+            "dirName": "촉",
+            "imgAddr": 4,
+            "type": 1
+        },
+        {
+            "children": [
+                {
+                    "children": [],
+                    "dirName": "",
+                    "imgAddr": 6,
+                    "type": 0
+                },
+                {
+                    "children": [],
+                    "dirName": "",
+                    "imgAddr": 7,
+                    "type": 0
+                }
+            ],
+            "dirName": "오",
+            "imgAddr": 6,
+            "type": 1
+        }
+    ],
+    "dirName": "root",
+    "imgAddr": -1,
+    "type": 1
+}

@@ -1,19 +1,10 @@
 var http = require('http'); 
 var mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost:27017/testDB',{ useNewUrlParser: true , useUnifiedTopology: true });
-var db = mongoose.connection;
-
-db.on('error', function(){
-    console.log('Connection Failed!');
-});
-
-db.once('open', function() {
-    console.log('Connected!');
-});
+connectDb();
 
 var teststring = mongoose.Schema({
-    string : 'string'
+    string : String
 });
 
 var Teststring = mongoose.model('Schema', teststring);
@@ -27,6 +18,8 @@ var server = http.createServer(function(request,response){
         var postdata = '';
 
         request.on('data', function (data) {
+            console.log("--- data ---");
+            console.log(data);
             postdata = postdata + data;
         });
 
@@ -66,6 +59,14 @@ var server = http.createServer(function(request,response){
     }
     else if(request.method=='GET'){
         console.log("GET Connected");
+        Teststring.find(function(error, string){
+            console.log('--- Read data ---');
+            if(error){
+                console.log(error);
+            }else{
+                console.log(string);
+            }
+        })
         response.writeHead(200, {'Content-Type':'text/html'});
         response.end('Hello World!');
     }
@@ -76,7 +77,19 @@ var server = http.createServer(function(request,response){
     }
 });
 
-// 3. listen 함수로 8080 포트를 가진 서버를 실행한다. 서버가 실행된 것을 콘솔창에서 확인하기 위해 'Server is running...' 로그를 출력한다
 server.listen(3000, function(){
     console.log('Server is running...');
 });
+
+function connectDb(){
+    mongoose.connect('mongodb://localhost:27017/testDB',{ useNewUrlParser: true , useUnifiedTopology: true });
+    var db = mongoose.connection;
+
+    db.on('error', function(){
+        console.log('DB Connection Failed!');
+    });
+
+    db.once('open', function() {
+        console.log('DB Connected!');
+    });
+}

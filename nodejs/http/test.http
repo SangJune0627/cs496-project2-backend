@@ -1,0 +1,76 @@
+### Variables
+@base_url = http://localhost:3000
+
+###
+get {{base_url}}/contacts
+Content-Type: application/json
+
+###
+post {{base_url}}/contacts
+Content-Type: application/json
+
+###
+get {{base_url}}/gallery/image_list?owner=1234
+Content-Type: application/json
+
+###
+POST {{base_url}}/gallery/image_list
+Content-Type: application/json
+
+{
+    "owner":1234,
+    "data":{
+        "children": [
+            {
+                "children": [],
+                "dirName": "",
+                "imgAddr": 1,
+                "type": 0
+            }
+        ],
+        "dirName": "",
+        "imgAddr": 5,
+        "type": 0
+    }
+}
+
+###
+POST {{base_url}}/gallery/register
+Content-Type: application/json
+
+{
+    "owner":1234,
+    "image_list": [
+          {
+            "type": 0,
+            "fd": "조조 초상화",
+            "bitmap": null
+          },
+          {
+            "type": 0,
+            "fd": "하후돈 초상화",
+            "bitmap": null
+          }
+    ],
+    "structure":{
+        "children": [
+            {
+                "children": [],
+                "dirName": "",
+                "imgAddr": 1,
+                "type": 0
+            }
+        ],
+        "dirName": "",
+        "imgAddr": 5,
+        "type": 0
+    }
+}
+
+### 
+get {{base_url}}/game
+Content-Type: application/json
+
+### 
+post {{base_url}}/game
+Content-Type: application/json
