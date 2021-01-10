@@ -1,13 +1,33 @@
 ### Variables
-@base_url = http://localhost:3000
+@base_url = http://localhost:4000
 
 ###
-get {{base_url}}/contacts
+get {{base_url}}/contacts?owner=1234
 Content-Type: application/json
 
 ###
 post {{base_url}}/contacts
 Content-Type: application/json
+
+{
+    "owner": 1234,
+    "contact_list":[
+        {
+            "id": 1234,
+            "lookUp": 1234,
+            "name": "Park Sang June",
+            "number": "01082633554",
+            "thumb": "dfadsfa21323123@%$#@"
+        },
+        {
+            "id": 1235,
+            "lookUp": 1235,
+            "name": "Lee Kang Uk",
+            "number": "01024717875",
+            "thumb": "ddkfj1@#!24jdfjlasdk"
+        }
+    ]
+}
 
 ###
 get {{base_url}}/gallery/image_list?owner=1234
@@ -19,7 +39,31 @@ Content-Type: application/json
 
 {
     "owner":1234,
-    "data":{
+    "image_list":[
+        {
+            "type": 1,
+            "fd": "조조 초상화",
+            "bitmap": "dkfjldjfl231lj23j1lj4##!@#"
+        },
+        {
+            "type": 0,
+            "fd": "하후돈 초상화",
+            "bitmap": null
+        }
+    ]
+}
+
+### 
+get {{base_url}}/gallery/structure?owner=1234
+Content-Type: application/json
+
+###
+POST {{base_url}}/gallery/structure
+Content-Type: application/json
+
+{
+    "owner":1234,
+    "structure":{
         "children": [
             {
                 "children": [],
@@ -28,14 +72,18 @@ Content-Type: application/json
                 "type": 0
             }
         ],
-        "dirName": "",
+        "dirName": "하위",
         "imgAddr": 5,
         "type": 0
     }
 }
 
 ###
-POST {{base_url}}/gallery/register
+GET {{base_url}}/gallery/all?owner=1234
+Content-Type: application/json
+
+###
+POST {{base_url}}/gallery/all
 Content-Type: application/json
 
 {
@@ -43,7 +91,7 @@ Content-Type: application/json
     "image_list": [
           {
             "type": 0,
-            "fd": "조조 초상화",
+            "fd": "유비 초상화",
             "bitmap": null
           },
           {
@@ -74,3 +122,31 @@ Content-Type: application/json
 ### 
 post {{base_url}}/game
 Content-Type: application/json
+
+### 
+get {{base_url}}/game/omok
+Content-Type: application/json
+
+### 
+post {{base_url}}/game/omok
+Content-Type: application/json
+
+{
+    "user":"SangJune",
+    "type":"turn",
+    "coordinate":{
+        "x":10,"y":11
+    }
+}
+
+### 
+post {{base_url}}/game/omok
+Content-Type: application/json
+
+{
+    "user":"KangUk",
+    "type":"turn",
+    "coordinate":{
+        "x":11,"y":11
+    }
+}
