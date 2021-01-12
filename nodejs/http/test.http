@@ -2,7 +2,7 @@
 @base_url = http://localhost:4000
 
 ###
-get {{base_url}}/contacts?owner=1234
+get {{base_url}}/contacts?owner=1652453601609658
 Content-Type: application/json
 
 ###
@@ -24,6 +24,13 @@ Content-Type: application/json
             "lookUp": 1235,
             "name": "Lee Kang Uk",
             "number": "01024717875",
+            "thumb": "ddkfj1@#!24jdfjlasdk"
+        },
+        {
+            "id": 1236,
+            "lookUp": 1236,
+            "name": "Dummy",
+            "number": "0107777777",
             "thumb": "ddkfj1@#!24jdfjlasdk"
         }
     ]
@@ -91,12 +98,12 @@ Content-Type: application/json
     "image_list": [
           {
             "type": 0,
-            "fd": "유비 초상화",
+            "fd": 1,
             "bitmap": null
           },
           {
             "type": 0,
-            "fd": "하후돈 초상화",
+            "fd": 2,
             "bitmap": null
           }
     ],
@@ -112,41 +119,5 @@ Content-Type: application/json
         "dirName": "",
         "imgAddr": 5,
         "type": 0
-    }
-}
-
-### 
-get {{base_url}}/game
-Content-Type: application/json
-
-### 
-post {{base_url}}/game
-Content-Type: application/json
-
-### 
-get {{base_url}}/game/omok
-Content-Type: application/json
-
-### 
-post {{base_url}}/game/omok
-Content-Type: application/json
-
-{
-    "user":"SangJune",
-    "type":"turn",
-    "coordinate":{
-        "x":10,"y":11
-    }
-}
-
-### 
-post {{base_url}}/game/omok
-Content-Type: application/json
-
-{
-    "user":"KangUk",
-    "type":"turn",
-    "coordinate":{
-        "x":11,"y":11
     }
 }

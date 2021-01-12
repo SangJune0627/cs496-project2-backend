@@ -1,0 +1,81 @@
+### Variables
+@base_url = http://localhost:4000
+
+### 
+get {{base_url}}/game/movewait?roomnumber=1
+Content-Type: application/json
+
+### 
+post {{base_url}}/game/turn
+Content-Type: application/json
+
+{
+    "id":2,
+    "name":"정지영",
+    "roomnumber":1,
+    "coordinates":{
+        "x":10,
+        "y":15
+    }
+}
+
+### 
+post {{base_url}}/game/turn
+Content-Type: application/json
+
+{
+    "id":4,
+    "name":"이정훈",
+    "roomnumber":0,
+    "coordinates":{
+        "x":0,
+        "y":1
+    }
+}
+
+### 
+get {{base_url}}/game/room?id=4&name=이정훈
+Content-Type: application/json
+
+### 
+post {{base_url}}/game/makeroom
+Content-Type: application/json
+
+{
+    "id":4,
+    "name":"이정훈"
+}
+
+### 
+post {{base_url}}/game/enterroom
+Content-Type: application/json
+
+{
+    "id":4,
+    "name":"이정훈",
+    "roomnumber":1
+}
+
+### 
+get {{base_url}}/game/wait?roomnumber=3
+Content-Type: application/json
+
+### 
+post {{base_url}}/game/exitroom
+Content-Type: application/json
+
+{
+    "id":1234,
+    "name":"이강욱",
+    "roomnumber":0
+}
+
+### 
+post {{base_url}}/game/end
+Content-Type: application/json
+
+{
+    "id":1234,
+    "name":"이강욱",
+    "roomnumber":0
+}

@@ -2,7 +2,6 @@ var http = require('http');
 var url = require('url');
 var querystring = require('querystring');
 var mongoose = require('mongoose');
-const { parse } = require('path');
 
 var contacts = mongoose.Schema({
     owner: String,
@@ -33,10 +32,13 @@ var gallery = mongoose.Schema({
             "type": "Number"
         },
         "fd": {
-            "type": "String"
+            "type": "Number"
         },
         "bitmap": {
             "type": "Mixed"
+        },
+        "bitmapStr": {
+            "type": "String"
         }
     }],
     structure: {
@@ -60,7 +62,154 @@ var Gallery = mongoose.model('Gallery', gallery);
 
 connectDb();
 
+var users = []
+var rooms = []
+
+class User {
+    constructor(id, name) {
+        this.id = id;
+        this.name = name;
+    }
+}
+
+var testuser1 = new User(1, "이영석");
+users.push(testuser1);
+var testuser2 = new User(2, "정지영");
+users.push(testuser2);
+var testuser3 = new User(3, "이우현");
+users.push(testuser3);
+
+class Room {
+    constructor(user1, roomnumber) {
+        this.roomnumber = roomnumber;
+        this.user1 = user1;
+        this.user2 = null;
+        this.state = "wait";
+        this.lastmove = { "turn": null, "x": null, "y": null }
+    }
+
+    enterRoomAndStart(user2) {
+        this.user2 = user2;
+        this.lastmove = { "turn": user2.id, "x": null, "y": null }
+        this.state = "play";
+    }
+
+    // startGame() {
+    //     this.state = "play"
+    // }
+
+    exitRoom(user) {
+        if (this.state == "play") {
+            if (user.id == this.user1.id) {
+                this.user1 = this.user2;
+            }
+            this.user2 = null;
+            this.state = "wait";
+        }
+        else {
+            this.state = "boom";
+        }
+    }
+
+    setCoordinates(turn, x, y) {
+        this.lastmove = { "turn": turn, "x": x, "y": y }
+    }
+
+}
+
+var testroom1 = new Room(testuser1, 0);
+rooms.push(testroom1);
+var testroom2 = new Room(testuser2, 1);
+rooms.push(testroom2);
+var testroom3 = new Room(testuser3, 2);
+rooms.push(testroom3);
+
+function findUser(id) {
+    for (each of users) {
+        if (each.id == id)
+            return each;
+    }
+}
+
+function getEmptyRoomNumber() {
+    return rooms.length
+}
+
+function getRooms(response, parsedquery) {
+    var already = false;
+    for (user of users) {
+        if (user.id == Number(parsedquery.id)) {
+            already = true;
+            break;
+        }
+    }
+    if (!already) {
+        var newUser = new User(Number(parsedquery.id), parsedquery.name);
+        users.push(newUser);
+    }
+    console.log(users);
+    console.log(rooms);
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ "data": rooms }));
+}
+
+function makeRoom(request, response) {
+    var body = '';
+    request.on('data', function (data) {
+        body += data;
+    });
+    request.on('end', function () {
+        var parsed_body = JSON.parse(body);
+        var room = new Room(findUser(parsed_body.id), getEmptyRoomNumber());
+        rooms.push(room);
+        response.writeHead(201, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ "data": [room] }));
+    });
+}
+
+function enterRoomAndStart(request, response) {
+    var body = '';
+    request.on('data', function (data) {
+        body += data;
+    });
+    request.on('end', function () {
+        var parsed_body = JSON.parse(body);
+        var room = rooms[parsed_body.roomnumber];
+        room.enterRoomAndStart(findUser(parsed_body.id));
+        response.writeHead(201, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ "data": [room] }));
+    });
+}
+
+function turn(request, response) {
+    var body = '';
+    request.on('data', function (data) {
+        body += data;
+    });
+    request.on('end', function () {
+        var parsed_body = JSON.parse(body);
+        var room = rooms[parsed_body.roomnumber];
+        room.setCoordinates(parsed_body.id, parsed_body.coordinates.x, parsed_body.coordinates.y);
+        response.writeHead(201, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ "data": [room] }));
+    });
+}
+
+function wait(response, parsedquery) {
+    var room = rooms[Number(parsedquery.roomnumber)];
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ "data": [room] }));
+}
+
+function movewait(response, parsedquery) {
+    var room = rooms[Number(parsedquery.roomnumber)];
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ "data": [room.lastmove] }));
+}
+
 var server = http.createServer(function (request, response) {
+
+    console.log("Connected")
 
     var parsedUrl = url.parse(request.url);
     var resource = parsedUrl.pathname;
@@ -82,39 +231,7 @@ var server = http.createServer(function (request, response) {
             console.log("Not reached");
         }
     } else if (resource.indexOf('/gallery') == 0) {
-
-        if (resource.substring(8).indexOf('/image_list') == 0) {
-
-            if (request.method == 'GET') {
-                /// Get ImageList
-                getImageList(response, parsedquery);
-                //////////////////
-            }
-            else if (request.method == 'POST') {
-                /// Post ImageList
-                postImageList(request, response);
-                ////////////////////
-            }
-            else {
-                console.log("Not reached");
-            }
-        }
-        else if (resource.substring(8).indexOf('/structure') == 0) {
-            if (request.method == 'GET') {
-                /// Get Structure
-                getStructure(response, parsedquery);
-                //////////////////
-            }
-            else if (request.method == 'POST') {
-                /// Post Structure
-                postStructure(request, response);
-                ////////////////////
-            }
-            else {
-                console.log("Not reached");
-            }
-        }
-        else if (resource.substring(8).indexOf('/all') == 0) {
+        if (resource.substring(8).indexOf('/all') == 0) {
             if (request.method == 'GET') {
                 /// Get All
                 getAll(response, parsedquery);
@@ -130,21 +247,27 @@ var server = http.createServer(function (request, response) {
             }
         }
         else {
-
+            console.log("Not reached");
         }
     } else if (resource.indexOf('/game') == 0) {
-        if (resource.substring(5).indexOf('/omok') == 0) {
-            if (request.method == 'GET') {
-                response.writeHead(200, { 'Content-Type': 'application/json' });
-                response.end(JSON.stringify({ data: "Game!" }));
-            }
-            else if (request.method == 'POST') {
-                response.writeHead(201, { 'Content-Type': 'application/json' });
-                response.end(JSON.stringify({ data: "Game!" }));
-            }
-            else {
-                console.log("Not reached");
-            }
+        if (resource.substring(5).indexOf("/turn") == 0) {
+            turn(request, response);
+        } else if (resource.substring(5).indexOf("/room") == 0) {
+            getRooms(response, parsedquery);
+        } else if (resource.substring(5).indexOf("/makeroom") == 0) {
+            makeRoom(request, response);
+        } else if (resource.substring(5).indexOf("/enterroom") == 0) {
+            enterRoomAndStart(request, response);
+        } else if (resource.substring(5).indexOf("/wait") == 0) {
+            wait(response, parsedquery);
+        } else if (resource.substring(5).indexOf("/movewait") == 0) {
+            movewait(response, parsedquery);
+        } else if (resource.substring(5).indexOf("/exitroom") == 0) {
+
+        } else if (resource.substring(5).indexOf("/end") == 0) {
+
+        } else {
+            console.log("Not Reached")
         }
     } else {
         response.writeHead(404, { 'Content-Type': 'application/json' });
@@ -170,6 +293,7 @@ function connectDb() {
 }
 
 function getContacts(response, parsedquery) {
+    console.log("겟들어옴")
     Contacts.findOne({ owner: parsedquery.owner }, function (error, data) {
         if (error) {
             console.log(error);
@@ -191,6 +315,7 @@ function postContacts(request, response) {
         body += data;
     });
     request.on('end', function () {
+        console.log(body)
         var parsed_body = JSON.parse(body);
         Contacts.findOne({ owner: parsed_body.owner }, { contact_list: 1 }, function (error, data) {
             if (error) {
@@ -226,98 +351,6 @@ function postContacts(request, response) {
     });
 }
 
-function getImageList(response, parsedquery) {
-    Gallery.findOne({ owner: parsedquery.owner }, { image_list: 1 }, function (error, data) {
-        if (error) {
-            console.log(error);
-        } else {
-            if (data == null) {
-                response.writeHead(404, { 'Content-Type': 'application/json' });
-                response.end(JSON.stringify({ "message": "Not Found" }));
-            } else {
-                response.writeHead(200, { 'Content-Type': 'application/json' });
-                response.end(JSON.stringify({ "data": data.image_list }));
-            }
-        }
-    });
-}
-
-function postImageList(request, response) {
-    var body = '';
-    request.on('data', function (data) {
-        body += data;
-    });
-    request.on('end', function () {
-        var parsed_body = JSON.parse(body);
-        Gallery.findOne({ owner: parsed_body.owner }, { image_list: 1 }, function (error, data) {
-            if (error) {
-                console.log(error);
-            } else {
-                if (data == null) {
-                    response.writeHead(404, { 'Content-Type': 'application/json' });
-                    response.end(JSON.stringify({ "message": "Not Found" }));
-                } else {
-                    data.image_list = parsed_body.image_list;
-                    data.save(function (error, modified_data) {
-                        if (error) {
-                            console.log(error);
-                        } else {
-                            response.writeHead(201, { 'Content-Type': 'application/json' });
-                            response.end(JSON.stringify({ "data": modified_data.image_list }));
-                        }
-                    });
-                }
-            }
-        });
-    });
-}
-
-function getStructure(response, parsedquery) {
-    Gallery.findOne({ owner: parsedquery.owner }, { structure: 1 }, function (error, data) {
-        if (error) {
-            console.log(error);
-        } else {
-            if (data == null) {
-                response.writeHead(404, { 'Content-Type': 'application/json' });
-                response.end(JSON.stringify({ "message": "Not Found" }));
-            } else {
-                response.writeHead(200, { 'Content-Type': 'application/json' });
-                response.end(JSON.stringify({ "data": data.structure }));
-            }
-        }
-    });
-}
-
-function postStructure(request, response) {
-    var body = '';
-    request.on('data', function (data) {
-        body += data;
-    });
-    request.on('end', function () {
-        var parsed_body = JSON.parse(body);
-        Gallery.findOne({ owner: parsed_body.owner }, { structure: 1 }, function (error, data) {
-            if (error) {
-                console.log(error);
-            } else {
-                if (data == null) {
-                    response.writeHead(404, { 'Content-Type': 'application/json' });
-                    response.end(JSON.stringify({ "message": "Not Found" }));
-                } else {
-                    data.structure = parsed_body.structure;
-                    data.save(function (error, modified_data) {
-                        if (error) {
-                            console.log(error);
-                        } else {
-                            response.writeHead(201, { 'Content-Type': 'application/json' });
-                            response.end(JSON.stringify({ "data": modified_data.structure }));
-                        }
-                    });
-                }
-            }
-        });
-    });
-}
-
 function getAll(response, parsedquery) {
     Gallery.findOne({ owner: parsedquery.owner }, { image_list: 1, structure: 1 }, function (error, data) {
         if (error) {
@@ -340,6 +373,7 @@ function postAll(request, response) {
         body += data;
     });
     request.on('end', function () {
+        console.log(body)
         var parsed_body = JSON.parse(body);
         Gallery.findOne({ owner: parsed_body.owner }, { image_list: 1, structure: 1 }, function (error, data) {
             if (error) {
