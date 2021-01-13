@@ -2,6 +2,7 @@ var http = require('http');
 var url = require('url');
 var querystring = require('querystring');
 var mongoose = require('mongoose');
+const { exit } = require('process');
 
 var contacts = mongoose.Schema({
     owner: String,
@@ -111,8 +112,14 @@ class Room {
         }
     }
 
+    endGame() {
+        this.user1 = null;
+        this.user2 = null;
+        this.state = "boom";
+    }
+
     setCoordinates(turn, x, y) {
-        this.lastmove = { "turn": turn, "x": x, "y": y }
+        this.lastmove = { "turn": turn, "x": x, "y": y };
     }
 
 }
@@ -121,8 +128,7 @@ var testroom1 = new Room(testuser1, 0);
 rooms.push(testroom1);
 var testroom2 = new Room(testuser2, 1);
 rooms.push(testroom2);
-var testroom3 = new Room(testuser3, 2);
-rooms.push(testroom3);
+testroom1.enterRoomAndStart(testuser3);
 
 function findUser(id) {
     for (each of users) {
@@ -147,8 +153,6 @@ function getRooms(response, parsedquery) {
         var newUser = new User(Number(parsedquery.id), parsedquery.name);
         users.push(newUser);
     }
-    console.log(users);
-    console.log(rooms);
     response.writeHead(200, { 'Content-Type': 'application/json' });
     response.end(JSON.stringify({ "data": rooms }));
 }
@@ -160,7 +164,8 @@ function makeRoom(request, response) {
     });
     request.on('end', function () {
         var parsed_body = JSON.parse(body);
-        var room = new Room(findUser(parsed_body.id), getEmptyRoomNumber());
+        console.log(parsed_body);
+        var room = new Room(findUser(Number(parsed_body.id)), getEmptyRoomNumber());
         rooms.push(room);
         response.writeHead(201, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ "data": [room] }));
@@ -174,10 +179,11 @@ function enterRoomAndStart(request, response) {
     });
     request.on('end', function () {
         var parsed_body = JSON.parse(body);
-        var room = rooms[parsed_body.roomnumber];
-        room.enterRoomAndStart(findUser(parsed_body.id));
+        var room = rooms[Number(parsed_body.roomnumber)];
+        room.enterRoomAndStart(findUser(Number(parsed_body.id)));
         response.writeHead(201, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ "data": [room] }));
+        console.log(JSON.stringify({ "data": [room] }));
     });
 }
 
@@ -188,8 +194,8 @@ function turn(request, response) {
     });
     request.on('end', function () {
         var parsed_body = JSON.parse(body);
-        var room = rooms[parsed_body.roomnumber];
-        room.setCoordinates(parsed_body.id, parsed_body.coordinates.x, parsed_body.coordinates.y);
+        var room = rooms[Number(parsed_body.roomnumber)];
+        room.setCoordinates(Number(parsed_body.id), parsed_body.coordinates.x, parsed_body.coordinates.y);
         response.writeHead(201, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ "data": [room] }));
     });
@@ -207,9 +213,34 @@ function movewait(response, parsedquery) {
     response.end(JSON.stringify({ "data": [room.lastmove] }));
 }
 
+function endGame(request, response) {
+    var body = '';
+    request.on('data', function (data) {
+        body += data;
+    });
+    request.on('end', function () {
+        var parsed_body = JSON.parse(body);
+        var room = rooms[Number(parsed_body.roomnumber)];
+        room.setCoordinates(Number(parsed_body.id), parsed_body.coordinates.x, parsed_body.coordinates.y);
+        room.endGame();
+        response.writeHead(201, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ "data": [room] }));
+    });
+}
+
+function surrenderGame(response, parsedquery) {
+    var room = rooms[Number(parsedquery.roomnumber)];
+    var user = findUser(Number(parsedquery.id));
+    room.setCoordinates(parsedquery.id, -1, -1);
+    room.endGame();
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ "data": [room.lastmove] }));
+}
+
 var server = http.createServer(function (request, response) {
 
-    console.log("Connected")
+    console.log("Connected");
+    console.log(request.url);
 
     var parsedUrl = url.parse(request.url);
     var resource = parsedUrl.pathname;
@@ -263,9 +294,11 @@ var server = http.createServer(function (request, response) {
         } else if (resource.substring(5).indexOf("/movewait") == 0) {
             movewait(response, parsedquery);
         } else if (resource.substring(5).indexOf("/exitroom") == 0) {
-
-        } else if (resource.substring(5).indexOf("/end") == 0) {
-
+            exitRoom(request, response);
+        } else if (resource.substring(5).indexOf("/victory") == 0) {
+            endGame(request, response);
+        } else if (resource.substring(5).indexOf("/surrender") == 0) {
+            surrenderGame(response, parsedquery);
         } else {
             console.log("Not Reached")
         }
@@ -273,6 +306,7 @@ var server = http.createServer(function (request, response) {
         response.writeHead(404, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ "message": "Not found" }));
     }
+
 });
 
 server.listen(4000, function () {
